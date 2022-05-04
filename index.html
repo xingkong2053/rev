@@ -10,14 +10,15 @@
 </head>
 <body>
     <div id="app">
-        <div> {{msg}} </div>
+        <div> msg : {{msg}} </div>
         <div>
+            <span>name : </span>
             <span>{{name.first}}</span>
             <span>{{name.last}}</span>
         </div>
     </div>
     <script>
-        new Vue({
+        const vm = new Vue({
             el: "#app",
             data: {
                 msg: "hello,vue",

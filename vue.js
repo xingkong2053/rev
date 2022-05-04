@@ -4,6 +4,9 @@ class Vue {
         const {el, data} = options
         this.$data = data
         observe(this.$data)
+        Object.keys(this.$data).forEach(key=>{
+            proxy(this, "$data", key)
+        })
         compile(this, el)
     }
 }
@@ -68,17 +71,28 @@ class Dependency{
 }
 
 class Watcher{
-    constructor(vm, callback) {
-        Dependency.target = this
+    constructor(vm, key ,callback) {
         this.deps = []
         this.vm = vm
+        this.key = key
         this.callback = callback
+        Dependency.target = this
+        this.value = this.get()
+        Dependency.target = null;
+        this.callback(this.value)
     }
     addDep(dep){
         this.deps.push(dep)
     }
+    get(){
+        const arr = this.key.split(".")
+        return arr.reduce(
+            (obj,key)=>obj[key],
+            this.vm.$data
+        )
+    }
     update(){
-        this.callback()
+        this.callback(this.get())
     }
 }
 
@@ -88,7 +102,36 @@ function compile(vm, el){
     let child;
     while((child = vm.$el.firstChild)){
         fragment.append(child)
-        console.log(fragment)
     }
+    fragmentCompile(fragment)
+    vm.$el.appendChild(fragment)
 
+    /**
+     * @param { DocumentFragment | ChildNode } node
+     */
+    function fragmentCompile(node){
+        const reg = /{{\s*(\S+)\s*}}/;
+        if(node.nodeType === 3){
+            // 文本节点
+            const rawTpl = node.nodeValue
+            const result = reg.exec(rawTpl)
+            if(result){
+                new Watcher(vm, result[1], newValue =>{
+                    node.nodeValue = rawTpl.replace(reg, newValue)
+                })
+            }
+        }
+        node.childNodes.forEach(child=>fragmentCompile(child))
+    }
+}
+
+function proxy(target, sourceKey, key){
+    Object.defineProperty(target,key,{
+        get(){
+            return target[sourceKey][key]
+        },
+        set(newValue){
+            target[sourceKey][key] = newValue
+        }
+    })
 }
