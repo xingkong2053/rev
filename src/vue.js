@@ -1,5 +1,5 @@
 
-class Vue {
+export default class Vue {
     constructor(options) {
         const {el, data} = options
         this.$data = data
