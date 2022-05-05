@@ -24,7 +24,7 @@ export default function parse(template){
         }
     }
 
-    return null;
+    return root;
 
     function parseStart(){
         const endIdx = html.indexOf(">")
@@ -43,6 +43,10 @@ export default function parse(template){
         attrs = attrs.filter(attr=>attr!=='')
         const mAttr = parseAttrs(attrs)
         const elmAST = genAST(tag,mAttr)
+        if(!root){
+            root = elmAST
+        }
+        stack.push(elmAST)
 
         function parseAttrs(attrs){
             const reg = /(.*?)\s*=\s*"(.*?)"/
@@ -66,6 +70,10 @@ export default function parse(template){
     }
 
     function parseEnd(){
-
+        html = html.slice(html.indexOf(">")+1)
+        processElm()
+        function processElm(){
+            const curElm = stack.pop()
+        }
     }
 }
