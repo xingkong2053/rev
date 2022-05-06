@@ -19,3 +19,11 @@ test('tag with attrs',()=>{
     expect(parse(`<div id="app" class="container" v-model="input"></div>`))
         .toStrictEqual(ast)
 })
+
+test('plain text', ()=>{
+    expect(parse("plain text xxxx").toBe(null))
+})
+
+test('tag with text',()=>{
+    expect(null).toBe(null)
+})

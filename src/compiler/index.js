@@ -20,7 +20,11 @@ export default function parse(template){
                 parseStart()
             }
         } else if(startIdx>0){
-
+            const nextStartIdx = html.indexOf("<")
+            if(stack.length){
+                processChars(html.slice(0, nextStartIdx))
+            }
+            html = html.slice(nextStartIdx)
         }
     }
 
@@ -39,8 +43,8 @@ export default function parse(template){
             tag = content.slice(0, iFirstSpace)
             sAttr = content.slice(iFirstSpace+1)
         }
-        let attrs = sAttr ? sAttr.split('') : []
-        attrs = attrs.filter(attr=>attr!=='')
+        let attrs = sAttr ? sAttr.split(' ') : []
+        attrs = attrs.filter(attr=>attr!==' ')
         const mAttr = parseAttrs(attrs)
         const elmAST = genAST(tag,mAttr)
         if(!root){
@@ -73,7 +77,17 @@ export default function parse(template){
         html = html.slice(html.indexOf(">")+1)
         processElm()
         function processElm(){
-            const curElm = stack.pop()
+            const curElm = stack.pop()      // 对curElm做深入的处理
         }
     }
+
+    function processChars(text){
+        if(!text.trim()) {return;}
+        const textAst = {type: 3, text}
+        if(text.match(/{{(.*)}}/)){
+            textAst.expression = RegExp.$1.trim()
+        }
+        stack[stack.length-1].children.push(textAst)
+    }
+
 }
