@@ -22,7 +22,7 @@ export default function parse(template){
         } else if(startIdx>0){
             const nextStartIdx = html.indexOf("<")
             if(stack.length){
-                processChars(html.slice(0, nextStartIdx))
+                processChars(html.slice(0, nextStartIdx))       // parse text
             }
             html = html.slice(nextStartIdx)
         }
@@ -52,6 +52,10 @@ export default function parse(template){
         }
         stack.push(elmAST)
 
+        if(isUnaryTag(tag)){
+            processElm()
+        }
+
         function parseAttrs(attrs){
             const reg = /(.*?)\s*=\s*"(.*?)"/
             const map = {}
@@ -76,8 +80,14 @@ export default function parse(template){
     function parseEnd(){
         html = html.slice(html.indexOf(">")+1)
         processElm()
-        function processElm(){
-            const curElm = stack.pop()      // 对curElm做深入的处理
+    }
+
+    function processElm(){
+        const curElm = stack.pop()      // 对curElm做深入的处理
+        const stackLen = stack.length
+        if(stackLen){
+            stack[stackLen-1].children.push(curElm)
+            curElm.parent = stack[stackLen-1]
         }
     }
 
@@ -88,6 +98,10 @@ export default function parse(template){
             textAst.expression = RegExp.$1.trim()
         }
         stack[stack.length-1].children.push(textAst)
+    }
+
+    function isUnaryTag(tag){               // 自闭和标签
+        return ['input'].includes(tag)
     }
 
 }
